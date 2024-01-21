@@ -86,7 +86,7 @@ public class RobotHardware {
         plane.setPosition(.5);
     }
     public void openPlane(){
-        wrist.setPosition(.3);
+        plane.setPosition(.3);
     }
 
 }
