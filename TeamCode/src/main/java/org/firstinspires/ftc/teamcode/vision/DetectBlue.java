@@ -19,6 +19,7 @@ import org.openftc.easyopencv.OpenCvPipeline;
 @TeleOp
 
 public class DetectBlue extends OpMode {
+    // TODO: Rewrite into standalone class
     public WebcamName webcamName;
     OpenCvCamera camera;
     BluePropPipeline pipeline;
