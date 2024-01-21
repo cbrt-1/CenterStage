@@ -5,62 +5,55 @@ import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.VoltageSensor;
-import com.roboticslib.motion.MecanumChassis;
 import com.roboticslib.motion.MecanumMotionController;
 import com.roboticslib.motion.MecanumPID;
 import com.roboticslib.motion.PIDController;
 import com.roboticslib.motion.ThreeWheelOdo;
 
+import org.firstinspires.ftc.teamcode.hardware.RobotHardware;
+
 import java.util.List;
 @Autonomous
 
 public class BlueRight extends OpMode {
-    // support
-    private MecanumChassis mc;
+    //TODO: Use computer vision to detect team prop
+    private RobotHardware robot;
     private ThreeWheelOdo odo;
-    private List<LynxModule> hubs;
+    private List<LynxModule> hubs; // Used for bulk reading
+
+    // TODO: Scale motor power based on voltage
     private VoltageSensor voltage;
 
-    //hardware
-    private DcMotorEx hanger;
-    private DcMotorEx lift;
-
     private HuskyLens huskyLens;
-    private Servo claw;
-    private Servo wrist;
 
     MecanumMotionController mmc;
     MecanumPID pid;
     @Override
     public void init() {
-        voltage = hardwareMap.get(VoltageSensor.class, "Control Hub");
+        //voltage = hardwareMap.voltageSensor.iterator().next();
+        robot = new RobotHardware(hardwareMap);
 
-        mc = new MecanumChassis(hardwareMap);
-        mc.enableBrakeMode(false);
-        mc.reverseFL(true);
-        mc.reverseFR(false);
-        mc.reverseBL(true);
-        mc.reverseBR(false);
-        mc.resetEncoders();
-        hanger = hardwareMap.get(DcMotorEx.class, "hanger");
-        lift = hardwareMap.get(DcMotorEx.class, "lift");
-        lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        lift.setTargetPosition(0);
-        lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        lift.setVelocity(1300);
-        lift.setTargetPosition(0);
+        robot.mc.enableBrakeMode(false);
+        robot.mc.reverseFL(true);
+        robot.mc.reverseFR(false);
+        robot.mc.reverseBL(true);
+        robot.mc.reverseBR(false);
+        robot.mc.resetEncoders();
+
+        robot.lift.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.lift.setTargetPosition(0);
+        robot.lift.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        robot.lift.setVelocity(1300);
+        robot.lift.setTargetPosition(0);
+
+
         huskyLens = hardwareMap.get(HuskyLens.class, "huskyLensBlue");
-
         huskyLens.selectAlgorithm(HuskyLens.Algorithm.COLOR_RECOGNITION);
 
-        odo = new ThreeWheelOdo(mc.getBL(), mc.getFL(),mc.getBR(), 2000, 1.88976);
-        // increase if possitive, decrease if negative
-        // -4.92
+        odo = new ThreeWheelOdo(robot.mc.getBL(), robot.mc.getFL(), robot.mc.getBR(), 2000, 1.88976);
 
-
+        // Increase diameter if angle offset is positive, decrease if negative
         odo.configure(-6.58, 6.58, -4.92);
         odo.reverseEncoders(true, false, false);
 
@@ -69,38 +62,30 @@ public class BlueRight extends OpMode {
             hubs.setBulkCachingMode(LynxModule.BulkCachingMode.MANUAL);
         }
 
-        // // light
-        // Servo light;
-        // light = hardwareMap.get(Servo.class, "light");
-        // light.setPosition(0);
-
-        claw = hardwareMap.get(Servo.class, "claw");
-        wrist = hardwareMap.get(Servo.class, "wrist");
-        claw.setPosition(0);
-        wrist.setPosition(.33);
-
-
+        robot.openClaw();
+        robot.wristDown();
 
         PIDController xPid = new PIDController(.1,0.16,.01);
         PIDController yPid = new PIDController(.12,0.16,.01);
 
         PIDController thetaPID = new PIDController(1.3,.16,0);
-        pid = new MecanumPID(mc, odo);
+        pid = new MecanumPID(robot.mc, odo);
         pid.setPID(xPid, yPid);
         pid.setTurnPID(thetaPID);
         pid.maxAngSpeed = .4;
 
         mmc = new MecanumMotionController(pid);
+
+        robot.closePlane();
     }
 
     int parking = 3;
     @Override
     public void init_loop() {
-        telemetry.addData("Encoder", lift.getCurrentPosition());
         for(LynxModule hubs : hubs){
             hubs.clearBulkCache();
         }
-        mc.updateEncoders();
+        robot.mc.updateEncoders();
         odo.update();
 
         int detected = 3;
@@ -112,35 +97,34 @@ public class BlueRight extends OpMode {
             else if(blocks[i].x < 100) detected = 3;
         }
         parking = detected;
+
         telemetry.addData("parking", parking);
-        //telemetry.addLine(mc.toString());
         telemetry.addLine(odo.toString());
         telemetry.update();
 
-        if(gamepad2.right_trigger>.1)
-        {
-            claw.setPosition(.39);
-        }
-        if(gamepad2.left_trigger>.1)
-        {
-            claw.setPosition(.1);
-        }
+        // Arm Controls
+        if(gamepad2.left_trigger > .2) robot.closeClaw();
+        if(gamepad2.right_trigger > .2) robot.openClaw();
 
-        if(gamepad2.dpad_up){
-            wrist.setPosition(.27);
-        }
-        if(gamepad2.dpad_down){
-            wrist.setPosition(.32);
-        }
-        hanger.setPower(gamepad2.right_stick_y * .4);
+        if(gamepad2.dpad_up) robot.wrist.setPosition(.27);
+        if(gamepad2.dpad_down) robot.wristDown();
+
+        robot.hanger.setPower(gamepad2.right_stick_y * .4);
 
     }
 
     @Override
     public void start() {
-        mmc.waitForSeconds(.2, () -> claw.setPosition(.4));
-        mmc.waitForSeconds(.4, () -> wrist.setPosition(.2));
-        parking = 3;
+        robot.hanger.setPower(0);
+        robot.mc.resetEncoders();
+        odo.setPosition(0,0);
+        odo.setAngle(0);
+
+        mmc.waitForSeconds(.2, () -> robot.closeClaw());
+        mmc.waitForSeconds(.4, () -> robot.wrist.setPosition(.2));
+
+        // parking = 3;  // Hard coded value for testing
+
         if(parking == 1){
             one();
         }
@@ -150,50 +134,98 @@ public class BlueRight extends OpMode {
         else if(parking == 3){
             three();
         }
+
         mmc.start();
     }
     void one(){
-        mmc.moveTo(10,5,10);
+        mmc.moveTo(10,5,30);
 
         mmc.moveTo(10,25,-180);
 
         mmc.moveTo(4,28,-180);
         mmc.waitForSeconds(.5);
-        mmc.waitForSeconds(.5, () -> claw.setPosition(.24));
-        mmc.waitForSeconds(.5, () -> claw.setPosition(.4));
+        mmc.waitForSeconds(.5, () -> robot.dropOnePixel());
+        mmc.waitForSeconds(.5, () -> robot.closeClaw());
         mmc.moveTo(15,28,-180);
         mmc.waitForSeconds(.4);
-        //mmc.moveTo(15,46,-180);
-        mmc.waitForSeconds(.4);
-        //mmc.moveTo(-60,46,-180);
+        mmc.moveTo(15,46,-180);
+        mmc.waitForSeconds(4);
+        mmc.moveTo(-60,46,-180);
+        mmc.waitForSeconds(.1, () -> robot.lift.setTargetPosition(1000));
+        mmc.waitForSeconds(.1, () -> robot.wristUp());
+        mmc.moveTo(-60,18,-180);
+        mmc.setMaxSpeed(.1);
+        mmc.waitForSeconds(1);
+        mmc.moveTo(-80,19,-180);
+        mmc.waitForSeconds(.8);
+        mmc.waitForSeconds(1, () -> robot.openClaw());
+        mmc.moveTo(-60,19,-180);
+        mmc.waitForSeconds(.1, () -> robot.lift.setTargetPosition(0));
+        mmc.waitForSeconds(.1, () -> robot.wristDown());
+        mmc.moveTo(-60,42,-180);
+        mmc.moveTo(-90,46,-180);
 
     }
 
     void two(){
-        mmc.moveTo(20,7,60);
+        mmc.moveTo(17,7,60);
         //mmc.waitForSeconds(.1);
-        mmc.moveTo(20,30,180);
-        mmc.waitForSeconds(.1);
-        mmc.moveTo(20,39,180);
-        mmc.waitForSeconds(.5);
-        //mmc.waitForSeconds(.5, () -> claw.setPosition(RobotHardware.ONE_PIXEL));
-        //mmc.waitForSeconds(.5, () -> claw.setPosition(RobotHardware.CLAW_CLOSE));
+        mmc.moveTo(17,30,180);
+        mmc.waitForSeconds(.7);
+        mmc.moveTo(17,37,180);
+        mmc.waitForSeconds(.7);
+        mmc.waitForSeconds(.5, () -> robot.dropOnePixel());
+        mmc.waitForSeconds(.5, () -> robot.closeClaw());
+        mmc.moveTo(17,46,-180);
+        mmc.waitForSeconds(4);
+        mmc.moveTo(-60,46,-180);
+        // start drop
+
+        mmc.waitForSeconds(.1, () -> robot.lift.setTargetPosition(1000));
+        mmc.waitForSeconds(.1, () -> robot.wristUp());
+        mmc.moveTo(-60,18,-180);
+        mmc.setMaxSpeed(.1);
+        mmc.waitForSeconds(.3);
+        mmc.moveTo(-80,20,-180);
+        mmc.waitForSeconds(.8);
+        mmc.waitForSeconds(1, () -> robot.openClaw());
+        mmc.moveTo(-60,20,-180);
+        mmc.waitForSeconds(.1, () -> robot.lift.setTargetPosition(0));
+        mmc.waitForSeconds(.1, () -> robot.wristDown());
+        mmc.moveTo(-60,42,-180);
+        mmc.waitForSeconds(.7);
+        mmc.moveTo(-90,42,-180);
 
     }
 
     void three(){
-        mmc.moveTo(4,18,0);
+        mmc.moveTo(6,5,0);
+        mmc.waitForSeconds(.1);
+        mmc.moveTo(6,5,90);
+        mmc.waitForSeconds(.1);
+        mmc.moveTo(6,43,90);
+        mmc.moveTo(5,36,0);
+        mmc.waitForSeconds(1);
+        mmc.waitForSeconds(.5, () -> robot.dropOnePixel());
+        mmc.waitForSeconds(.5, () -> robot.closeClaw());
+        mmc.moveTo(10,50,-180);
+        mmc.waitForSeconds(4);
+        mmc.moveTo(-60,51,-180);
+
+        mmc.waitForSeconds(.1, () -> robot.lift.setTargetPosition(1000));
+        mmc.waitForSeconds(.1, () -> robot.wristUp());
+        mmc.moveTo(-60,40,-180);
+        mmc.setMaxSpeed(.1);
         mmc.waitForSeconds(.3);
-        //mmc.waitForSeconds(.5, () -> claw.setPosition(RobotHardware.ONE_PIXEL));
-        //mmc.waitForSeconds(.5, () -> claw.setPosition(RobotHardware.CLAW_CLOSE));
-        mmc.waitForSeconds(.5, () -> wrist.setPosition(0));
-        mmc.moveTo(4,40,0);
-        mmc.waitForSeconds(.5, () -> wrist.setPosition(.2));
-        // testing
-        mmc.waitForSeconds(.5, () -> lift.setTargetPosition(1300));
-        mmc.moveTo(14,40,0);
-        mmc.waitForSeconds(5);
-        mmc.waitForSeconds(.5, () -> lift.setTargetPosition(0));
+        mmc.moveTo(-79,44,-180);
+        mmc.waitForSeconds(.8);
+        mmc.waitForSeconds(1, () -> robot.closeClaw());
+        mmc.moveTo(-60,41,-180);
+        mmc.waitForSeconds(.1, () -> robot.lift.setTargetPosition(0));
+        mmc.waitForSeconds(.1, () -> robot.wristDown());
+        mmc.moveTo(-60,59,-180);
+        mmc.waitForSeconds(.7);
+        mmc.moveTo(-88,59,-180);
     }
 
 
@@ -202,7 +234,7 @@ public class BlueRight extends OpMode {
         for(LynxModule hubs : hubs){
             hubs.clearBulkCache();
         }
-        mc.updateEncoders();
+        robot.mc.updateEncoders();
         odo.update();
         mmc.update();
         telemetry.addLine(odo.toString());
