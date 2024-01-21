@@ -5,7 +5,7 @@ Welcome!
 ### Hardware
 
 This contains the RobotHardware class, which is a centralized class used by the TeleOp and Autonomous OpModes.
-It holds all hardware references and 
+It holds all hardware references and common hardware method calls (such as controlling the claw).
 
 ### Testing
 
