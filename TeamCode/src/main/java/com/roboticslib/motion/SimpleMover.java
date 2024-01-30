@@ -144,8 +144,8 @@ public class SimpleMover {
                 if(Math.abs(deltaAngle) > Math.toRadians(2)){
                     inputTurn = (deltaAngle * .5 + Math.signum(deltaAngle) * .1);
                 }
-                inputTurn = Range.clip(inputTurn, -.5, .5) * v;
-                inputPower = Range.clip(inputPower, -.6, .6) * v;
+                inputTurn = Range.clip(inputTurn, -.5, .5);
+                inputPower = Range.clip(inputPower, -.6, .6);
                 double sin = Math.sin(inputTheta - Math.PI/4 - odo.getAngle());
                 double cos = Math.cos(inputTheta - Math.PI/4 - odo.getAngle());
                 double max = Math.max(Math.abs(cos), Math.abs(sin));
@@ -214,8 +214,8 @@ public class SimpleMover {
                 if(Math.abs(deltaAngle) > Math.toRadians(2)){
                     inputTurn = (deltaAngle * .5 + Math.signum(deltaAngle) * .1);
                 }
-                inputTurn = Range.clip(inputTurn, -.5, .5) * v;
-                inputPower = Range.clip(inputPower, -.6, .6) * v;
+                inputTurn = Range.clip(inputTurn, -.5, .5);
+                inputPower = Range.clip(inputPower, -.6, .6);
                 double sin = Math.sin(inputTheta - Math.PI/4 - odo.getAngle());
                 double cos = Math.cos(inputTheta - Math.PI/4 - odo.getAngle());
                 double max = Math.max(Math.abs(cos), Math.abs(sin));
@@ -282,8 +282,8 @@ public class SimpleMover {
                 if(Math.abs(deltaAngle) > Math.toRadians(2)){
                     inputTurn = (deltaAngle * .5 + Math.signum(deltaAngle) * .4);
                 }
-                inputTurn = Range.clip(inputTurn, -.5, .5) * v;
-                inputPower = Range.clip(inputPower, -.6, .6) * v;
+                inputTurn = Range.clip(inputTurn, -.5, .5);
+                inputPower = Range.clip(inputPower, -.6, .6);
                 double sin = Math.sin(inputTheta - Math.PI/4 - odo.getAngle());
                 double cos = Math.cos(inputTheta - Math.PI/4 - odo.getAngle());
                 double max = Math.max(Math.abs(cos), Math.abs(sin));
@@ -352,11 +352,11 @@ public class SimpleMover {
                 }
                 if(dist > 10) dist = 10;
                 double inputTheta = Math.atan2(deltaY, deltaX) + Math.PI / 2;
-                double inputPower =  (dist * .1) * v;
+                double inputPower =  (dist * .1);
                 double inputTurn = 0;
 
                 if(Math.abs(deltaAngle) > Math.toRadians(2)){
-                    inputTurn = (deltaAngle * .5 + Math.signum(deltaAngle) * .3) * v;
+                    inputTurn = (deltaAngle * .5 + Math.signum(deltaAngle) * .3);
                 }
                 double sin = Math.sin(inputTheta - Math.PI/4 - odo.getAngle());
                 double cos = Math.cos(inputTheta - Math.PI/4 - odo.getAngle());
