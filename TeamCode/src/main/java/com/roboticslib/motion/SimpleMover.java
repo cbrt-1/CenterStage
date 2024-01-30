@@ -27,10 +27,6 @@ public class SimpleMover {
             actions.get(current).update();
         }
     }
-    VoltageSensor vs = null;
-    public void setVoltageSensor(VoltageSensor volts){
-        vs = volts;
-    }
     public double lastX = 0;
     public double lastY = 0;
     public double lastAngle = 0;
@@ -51,8 +47,6 @@ public class SimpleMover {
             }
             @Override
             void update(){
-                double v = vs.getVoltage();
-                v = 1;
                 double deltaX = tx - odo.getX();
                 double deltaY = ty - odo.getY();
                 double dist = deltaX * deltaX + deltaY * deltaY;
@@ -83,8 +77,8 @@ public class SimpleMover {
                 if(Math.abs(deltaAngle) > Math.toRadians(3)){
                     inputTurn = (deltaAngle * .5) + Math.signum(deltaAngle) * .1;
                 }
-                inputTurn = Range.clip(inputTurn, -.3, .3) * v;
-                inputPower = Range.clip(inputPower, -.6, .6) * v;
+                inputTurn = Range.clip(inputTurn, -.3, .3);
+                inputPower = Range.clip(inputPower, -.6, .6);
                 double sin = Math.sin(inputTheta - Math.PI/4 - odo.getAngle());
                 double cos = Math.cos(inputTheta - Math.PI/4 - odo.getAngle());
                 double max = Math.max(Math.abs(cos), Math.abs(sin));
@@ -122,8 +116,6 @@ public class SimpleMover {
             }
             @Override
             void update(){
-                double v = vs.getVoltage();
-                v = 12 / v;
                 double deltaX = tx - odo.getX();
                 double deltaY = ty - odo.getY();
                 double dist = deltaX * deltaX + deltaY * deltaY;
@@ -194,8 +186,6 @@ public class SimpleMover {
             @Override
             void update(){
                 updateLoop.run();
-                double v = vs.getVoltage();
-                v = 12 / v;
                 double deltaX = tx - odo.getX();
                 double deltaY = ty - odo.getY();
                 double dist = deltaX * deltaX + deltaY * deltaY;
@@ -264,8 +254,6 @@ public class SimpleMover {
             }
             @Override
             void update(){
-                double v = vs.getVoltage();
-                v = 12 / v;
                 double deltaX = tx - odo.getX();
                 double deltaY = ty - odo.getY();
                 double dist = deltaX * deltaX + deltaY * deltaY;
@@ -344,8 +332,6 @@ public class SimpleMover {
             }
             @Override
             void update(){
-                double v = vs.getVoltage();
-                v = 12 / v;
                 double deltaX = tx - odo.getX();
                 double deltaY = ty - odo.getY();
                 double dist = deltaX * deltaX + deltaY * deltaY;
