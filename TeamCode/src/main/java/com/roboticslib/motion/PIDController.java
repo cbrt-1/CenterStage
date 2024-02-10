@@ -7,7 +7,8 @@ public class PIDController {
     final double kP;
     final double kI;
     final double kD;
-    double iLimit = 1;
+    public double iLimit = 3; // controls the distance where i begins increasing
+    public double iMax = .2; // the max amount of power i can be. (try keeping this just high enough to overcome friction)
 
     double targetVal = 0;
     
@@ -38,12 +39,13 @@ public class PIDController {
         if (Math.abs(error) < iLimit) {
             errorSum += error * deltaTime;
         }
+        
+        if(errorSum < -iMax) errorSum = -iMax;
+        if(errorSum > iMax) errorSum = iMax;
 
         double errorRate = (error - lastError) / deltaTime;
 
         double value = kP * error + kI * errorSum + kD * errorRate;
-        
-        
         
         lastTime = timer.seconds();
         lastError = error;
