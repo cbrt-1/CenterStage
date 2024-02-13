@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.util.Range;
 import com.roboticslib.motion.TeleopController;
 import com.roboticslib.util.Mathf;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.teamcode.hardware.RobotHardware;
 
 @TeleOp
@@ -35,7 +36,7 @@ public class Teleop extends OpMode {
     @Override
     public void init() {
         robot = new RobotHardware(hardwareMap);
-        chassis = new TeleopController(robot.mc, robot.imu);
+        chassis = new TeleopController(robot.mc);
         robot.lift.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         robot.wristDown();
         robot.openClaw();
@@ -50,15 +51,14 @@ public class Teleop extends OpMode {
     }
     @Override
     public void start() {
-        chassis.getBotHeading();
     }
 
     @Override
     public void loop() {
 
         // DRIVING
-        if(gamepad1.dpad_up) chassis.resetYaw();
-        double botHeading = chassis.botHeading;
+        if(gamepad1.dpad_up) robot.imu.resetYaw();
+        double botHeading = robot.imu.getRobotYawPitchRollAngles().getYaw(AngleUnit.RADIANS);;
 
         //TODO: Add a button that slows the robot down
         double inputTheta = Math.atan2(-gamepad1.left_stick_y, gamepad1.left_stick_x);
@@ -81,7 +81,7 @@ public class Teleop extends OpMode {
 
         inputTurn = Range.clip(inputTurn, -.5, .5);
 
-        chassis.update(inputTheta,inputPower,inputTurn);
+        chassis.fieldCentric(inputTheta,inputPower,inputTurn, botHeading);
 
         // GUNNER CONTROLS
         double hangerPower = gamepad2.left_stick_y;
