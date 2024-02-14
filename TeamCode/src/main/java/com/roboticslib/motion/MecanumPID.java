@@ -19,6 +19,7 @@ public class MecanumPID {
     ElapsedTime timer = null;
     
     public boolean nextState = false;
+    public double v = 1;
     
     public MecanumPID(MecanumChassis mc, Odometry odo){
         this.mc = mc;
@@ -63,7 +64,7 @@ public class MecanumPID {
         double cos = Math.cos(inputTheta + Math.PI/4 - botHeading);
         
         double maxed = Math.max(Math.abs(cos), Math.abs(sin));
-        
+        inputPower *= v;
         double frontLeft = inputPower * cos/maxed - inputTurn;
         double frontRight = inputPower * sin/maxed + inputTurn;
         double backLeft = inputPower * sin/maxed - inputTurn;

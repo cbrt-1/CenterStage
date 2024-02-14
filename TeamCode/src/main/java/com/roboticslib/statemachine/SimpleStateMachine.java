@@ -1,5 +1,6 @@
 package com.roboticslib.statemachine;
 
+import com.roboticslib.statemachine.SimpleState;
 public class SimpleStateMachine
 {
     public SimpleState current = null;

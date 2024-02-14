@@ -34,28 +34,34 @@ public class MecanumMotionController {
     public double lastAngle = 0;
     
     public void moveTo(double x, double y, double theta){
+        
         actions.add(new MecanumAction(){
             double tx = x;
             double ty = y;
             double tAngle = Math.toRadians(theta);
 
+
+            ElapsedTime timer;
+            double seconds = 4;
+        
             @Override
             void start(){
                 pid.moveTo(x,y,theta);
                 lastX = x;
                 lastY = y;
                 lastAngle = theta;
+                timer = new ElapsedTime();
             }
             @Override
             void update(){
                 pid.update();
-                double deltaX = x - pid.odo.getX();
-                double deltaY = y - pid.odo.getY();
+                double deltaX = tx - pid.odo.getX();
+                double deltaY = ty - pid.odo.getY();
                 double deltaAngle = tAngle - pid.odo.getAngle();
                 deltaAngle = Mathf.angleWrap(deltaAngle);
                 double dist = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
                 
-                if(dist < 2 && Math.abs(deltaAngle) < Math.toRadians(2)){
+                if(timer.seconds() > seconds || dist < 2 && Math.abs(deltaAngle) < Math.toRadians(2)){
                     nextState();
                 }
                 

@@ -10,12 +10,12 @@ import com.roboticslib.motion.MecanumChassis;
 public class RobotHardware {
 
     /* CONSTANTS */
-    private static final double OPEN_CLAW = 0;
-    private static final double ONE_PIXEL_CLAW = .3;
+    private static final double OPEN_CLAW = .1;
+    private static final double ONE_PIXEL_CLAW = .26;
     private static final double CLOSE_CLAW = .4;
 
-    private static final double WRIST_UP = .1;
-    private static final double WRIST_DOWN = .31;
+    private static final double WRIST_UP = 1;
+    private static final double WRIST_DOWN = .83;
 
     /* DRIVING */
     public MecanumChassis mc;
@@ -30,6 +30,10 @@ public class RobotHardware {
     public DcMotorEx hanger;
     public Servo plane;
 
+    /* Retract */
+    public Servo strafeRetract;
+    public Servo leftRetract;
+    public Servo rightRetract;
 
     public RobotHardware(HardwareMap hardwareMap){
         // Drive Motors
@@ -52,9 +56,13 @@ public class RobotHardware {
         lift = hardwareMap.get(DcMotorEx.class, "lift");
         wrist = hardwareMap.get(Servo.class, "wrist");
         claw = hardwareMap.get(Servo.class, "claw");
+        plane = hardwareMap.get(Servo.class, "plane");
 
-
+        strafeRetract = hardwareMap.get(Servo.class, "strafeRetract");
+        leftRetract = hardwareMap.get(Servo.class, "leftRetract");
+        rightRetract = hardwareMap.get(Servo.class, "rightRetract");
     }
+    
 
     public void resetYaw(){
         imu.resetYaw();
@@ -83,11 +91,22 @@ public class RobotHardware {
 
     // Plane
     public void closePlane(){
-        plane.setPosition(.5);
+        plane.setPosition(.35);
     }
     public void openPlane(){
-        plane.setPosition(.3);
+        plane.setPosition(.2);
     }
+    public void retract(){
+        strafeRetract.setPosition(.59);
+        leftRetract.setPosition(.6);
+        rightRetract.setPosition(.45);
+    }
+    public void unretract(){
+        strafeRetract.setPosition(.56);
+        leftRetract.setPosition(.53);
+        rightRetract.setPosition(.9);
+    }
+    
 
 }
 
