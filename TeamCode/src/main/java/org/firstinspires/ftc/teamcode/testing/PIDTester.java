@@ -65,7 +65,7 @@ public class PIDTester extends OpMode {
 
         PIDController thetaPID = new PIDController(2,.9,0);
         pid = new MecanumPID(mc, odo);
-        pid.v = hardwareMap.voltageSensor.iterator().next().getVoltage() / 12.0;
+        pid.v = 12.0 / hardwareMap.voltageSensor.iterator().next().getVoltage();
         
         pid.setPID(xPid, yPid);
         pid.setTurnPID(thetaPID);
